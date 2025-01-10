@@ -2,7 +2,7 @@ export const optimizePdf = async (file) => {
 	try {
 		const myHeaders = new Headers();
 		myHeaders.append('Accept', 'application/json');
-		myHeaders.append('Api-Key', '559fae7a-4053-44ff-978f-c0c5fa7abcc1');
+		myHeaders.append('Api-Key', import.meta.env.VITE_API_KEY);
 
 		const formdata = new FormData();
 		formdata.append('file', file, file.name);
@@ -15,7 +15,7 @@ export const optimizePdf = async (file) => {
 			redirect: 'follow'
 		};
 
-		const response = await fetch('https://api.pdfrest.com/compressed-pdf', requestOptions);
+		const response = await fetch(import.meta.env.VITE_URL, requestOptions);
 		const data = await response.json();
 
 		const fileResponse = await fetch(data.outputUrl);
