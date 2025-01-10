@@ -5,6 +5,12 @@ export const useDocumentStore = create((set, get) => {
 	return {
 		documents: [],
 		selectedDocumentId: null,
+		loading: false,
+		setLoading: (isLoading) => {
+			set({
+				loading: isLoading
+			});
+		},
 		createNewDocument: (navigate) => {
 			const newDocument = createNewDocumentObj();
 

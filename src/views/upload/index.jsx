@@ -1,17 +1,18 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+
 import DropZone from '../../components/drop-zone';
 import { useDocumentStore } from '../../store/document.store';
-import { useEffect } from 'react';
 
 function UploadView() {
 	const navigate = useNavigate();
 	const { documentId } = useParams();
 
+	const loading = useDocumentStore((state) => state.loading);
 	const editDocument = useDocumentStore((state) => state.editDocument);
 	const removeFile = useDocumentStore((state) => state.removeFile);
-	const currentDocument = useDocumentStore((state) => state.getSelectedDocument());
-
 	const selectDocumentById = useDocumentStore((state) => state.selectDocumentById);
+	const currentDocument = useDocumentStore((state) => state.getSelectedDocument());
 
 	useEffect(() => {
 		const exist = selectDocumentById(documentId);
@@ -32,8 +33,9 @@ function UploadView() {
 			<section>
 				<div className='flex'>
 					<Link
+						aria-disabled={loading}
 						to={'/documentos'}
-						className='mb-4 px-4 py-2 bg-blue-500 rounded-md text-white font-medium active:shadow-md active:opacity-70'>
+						className='mb-4 px-4 py-2 bg-blue-500 rounded-md text-white font-medium active:shadow-md active:opacity-70 aria-disabled:opacity-70 aria-disabled:pointer-events-none'>
 						Regresar a la lista
 					</Link>
 				</div>
@@ -74,9 +76,9 @@ function UploadView() {
 					</div>
 				) : null}
 
-				<article className='max-w-md m-auto'>
+				<article className='mt-4 max-w-md m-auto'>
 					<DropZone
-						file={currentDocument.file}
+						initialFile={currentDocument.file}
 						uploadFileHandler={uploadFileHandler}
 						removeFileEmitHandler={removeFileEmitHandler}
 					/>
