@@ -1,18 +1,31 @@
+/* eslint-disable no-unused-vars */
+import { useEffect } from 'react';
+import { any } from 'prop-types';
+import { func } from 'prop-types';
 import { useRef, useState } from 'react';
+import { fileTypeFromStream } from 'file-type';
+
 import { optimizePdf } from '../../services/optimize';
-import UploadButton from '../../shared/components/UploadButton';
+import { useDocumentStore } from '../../store/document.store';
+import { ACCEPT_EXTENSION, ACCEPT_MIME_TYPE } from '../../core/config/mime-type.config';
 import H3 from '../../shared/components/H3';
+import UploadButton from '../../shared/components/UploadButton';
 
 function DropZone({
-	file = null,
+	initialFile = null,
 	uploadFileHandler = (_) => {},
 	removeFileEmitHandler = (_) => {}
 } = {}) {
-	const [loading, setLoading] = useState(false);
+	const loading = useDocumentStore((state) => state.loading);
+	const setLoading = useDocumentStore((state) => state.setLoading);
 	const [currentDragState, setCurrentDragState] = useState('DRAG_LEAVE');
-	const [currentFile, setFile] = useState(file);
+	const [currentFile, setFile] = useState(initialFile);
 
 	const inputFile = useRef();
+
+	useEffect(() => {
+		setFile(initialFile);
+	}, [initialFile]);
 
 	const onDragOverHandler = (e) => {
 		e.preventDefault();
@@ -23,12 +36,18 @@ function DropZone({
 		setCurrentDragState('DRAG_LEAVE');
 	};
 
-	const getRandomFileId = () => Math.floor(Math.random() * 10000000).toString(16);
+	const getRandomFileId = () => crypto.randomUUID();
 
 	const processFile = async (files) => {
 		const file = files[0];
 
-		if (file.type !== 'application/pdf') return;
+		try {
+			const typeInfo = await fileTypeFromStream(file.stream());
+
+			if (!ACCEPT_MIME_TYPE.includes(typeInfo.mime)) return;
+		} catch (error) {
+			console.warn(error);
+		}
 
 		setLoading(true);
 
@@ -86,7 +105,13 @@ function DropZone({
 			onDrop={onDropHandler}>
 			<H3 className='font-semibold my-3 pointer-events-none'>Documentos</H3>
 
-			<input type='file' className='hidden' onChange={changeInputFile} ref={inputFile} />
+			<input
+				type='file'
+				accept={ACCEPT_EXTENSION.join(',')}
+				className='hidden'
+				onChange={changeInputFile}
+				ref={inputFile}
+			/>
 
 			<UploadButton
 				disabled={currentDragState === 'DRAG_OVER'}
@@ -170,5 +195,11 @@ function DropZone({
 		</div>
 	);
 }
+
+DropZone.propTypes = {
+	initialFile: any,
+	removeFileEmitHandler: func,
+	uploadFileHandler: func
+};
 
 export default DropZone;
